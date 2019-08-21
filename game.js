@@ -1,12 +1,11 @@
-var game = function() {
-  this.canvas = null;
-  this.context = null;
-  this.width = 288;
-  this.height = 512;
+class game {
+  constructor() {
+    this.width = 288;
+    this.height = 512;
+    this.gameOver = false;
+    this.gameStarted = false;
+    this.scorePoint = 0;
 
-  this.gameOver = false;
-
-  this.init = function() {
     this.canvas = document.createElement('canvas');
     this.context = this.canvas.getContext('2d');
     this.canvas.width = this.width;
@@ -14,56 +13,58 @@ var game = function() {
     document.body.appendChild(this.canvas);
 
     this.bird = new bird(this)
-    this.bird.init();
-
     this.bg = new bg(this);
-    this.bg.init();
-
     this.base = new base(this);
-    this.base.init();
-
     this.pipe = new pipe(this);
-    this.pipe.init();
+    this.score = new score(this);
 
-    this.listenMouse()
-
+    this.listenMouse();
     this.loop();
   }
 
-  this.loop = function() {
+  loop() {
     this.update();
     this.draw();
-    setTimeout(this.loop, 33)
-  }.bind(this)
+    setTimeout(this.loop.bind(this), 33);
+  };
 
-  this.update = function() {
+  update() {
     if ( this.gameOver ) return;
     this.bg.update();
     this.base.update();
-    this.pipe.update();
+    if ( this.gameStarted ) this.pipe.update();
     this.bird.update();
-    if (this.gameOver) {
-      gameover = new Image();
-      gameover.onload = function() {
-        gameover.src = 'assets/gameover.png';
-        this.context.drawImage(this.image, 48, 235);
-      }
-    }
   }
 
-  this.listenMouse = function() {
+  listenMouse() {
     this.canvas.addEventListener('click', () => {
       this.bird.flap();
+      if(!this.gameStarted) {
+        this.gameStarted = true;
+      }
     })
-  }.bind(this)
+  }
 
-  this.draw = function() {
+  draw() {
+    if ( this.gameOver ) {
+      let gameover = new Image();
+      gameover.src = 'assets/gameover.png';
+      this.context.drawImage(gameover, 48, 235);
+      return;
+    };
     this.bg.draw();
-    this.pipe.draw();
+    if ( this.gameStarted ) {
+      this.pipe.draw();
+      this.score.draw();
+    } else {
+      let peddingScreen = new Image();
+      peddingScreen.src = 'assets/message.png';
+      this.context.drawImage(peddingScreen, 52, 122);
+    }
     this.base.draw();
     this.bird.draw();
+    console.log(this.scorePoint);
   }
 }
 
 var g = new game();
-g.init();
